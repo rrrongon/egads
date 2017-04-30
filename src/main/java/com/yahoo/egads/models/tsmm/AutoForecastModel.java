@@ -105,6 +105,7 @@ public class AutoForecastModel extends TimeSeriesAbstractModel {
         initForecastErrors(myModel, data);
        
         logger.debug(getBias() + "\t" + getMAD() + "\t" + getMAPE() + "\t" + getMSE() + "\t" + getSAE() + "\t" + 0 + "\t" + 0);
+        System.out.println("mymodel "+ myModel.getModelName());
     }
 
     public void update(TimeSeries.DataSequence data) {

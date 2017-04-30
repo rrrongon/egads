@@ -9,18 +9,21 @@
 
 package com.yahoo.egads.utilities;
 
+
 import com.yahoo.egads.data.TimeSeries;
-import java.util.StringTokenizer;
-import java.util.ArrayList;
+
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Properties;
 
 public class FileUtils {
     
     // Creates a time-series from a file.
     public static ArrayList<TimeSeries> createTimeSeries(String csv_file, Properties config) {
+
         // Input file which needs to be parsed
         String fileToParse = csv_file;
         BufferedReader fileReader = null;
@@ -45,9 +48,39 @@ public class FileUtils {
 
             // Read the file line by line
             boolean firstLine = true;
-            while ((line = fileReader.readLine()) != null) {
+
+            //initialize class which will fetch data from influx
+            FetchDataFronInflux influxData = new FetchDataFronInflux();
+            List<List<Object>> datas = new ArrayList<List<Object>>();
+            datas = influxData.getInfluxData();
+
+            long dataSize = datas.size();
+
+
+            for (int k =0 ; k<datas.size();k++) {
                 // Get all tokens available in line.
-                String[] tokens = line.split(delimiter);
+
+                // Java influxDB client returns timestamp in yyyy-MM-dd'T'HH:mm:ss'Z' this format. so, to make it compatible
+                // we must convert this time to our desired timestamp and so we convert like bellow.
+                String yourString = (String) datas.get(k).get(0);
+                Timestamp timestamp = null;
+                long unixTime = 0;
+                try{
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                    unixTime = (long) dateFormat.parse(yourString).getTime();
+                    unixTime = unixTime/1000;
+
+                }catch(Exception e){//this generic but you can control another types of exception
+                    e.printStackTrace();
+                }
+
+                String[] tokens = new String[2] ;
+
+                // this unixtime is our converted time stamp and so our code continues from here.
+                tokens[0] = "" + unixTime;
+                tokens[1] = ""+ datas.get(k).get(1);
+
+
                 Long curTimestamp = null;
                 
                 // Check for the case where there is more than one line preceding the data 
@@ -133,7 +166,7 @@ public class FileUtils {
     }
     
     // Parses the string array property into an integer property.
-    public static int[] splitInts(String str) throws IllegalArgumentException {
+public static int[] splitInts(String str) throws IllegalArgumentException {
         StringTokenizer tokenizer = new StringTokenizer(str, ",");
         int n = tokenizer.countTokens();
         int[] list = new int[n];

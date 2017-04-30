@@ -215,7 +215,7 @@ public class TimeSeries implements JsonAble, Serializable {
 
     public void append(long time, float value) throws Exception {
         if (size() > 0 && time < lastTime()) {
-            throw new Exception("time=" + time + " at index=" + size() + " out of order");
+            throw new Exception("time=" + time + " at index=" + size() + " out of order  last time = "+lastTime());
         }
         data.add(new Entry(time, value));
     }
